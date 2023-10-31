@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Book Appointment</title>
+  <link rel="stylesheet" href="../public/style.css">
+</head>
+
+<body>
+  <header>
+    <h1>Book Appointment</h1>
+  </header>
+  <section class="container">
+    <form id="my-form">
+      <div>
+        <label for="name">Name:</label>
+        <input type="text" name="username" id="name">
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="text" name="email" id="email">
+      </div>
+      <div>
+        <label for="Phonenum">Phone-no:</label>
+        <input type="tel" name="phonenum" id="Phonenum">
+      </div>
+      <input class="btn" type="submit" value="Submit">
+    </form>
+
+    
+    <ul class="items"></ul>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+      const myForm = document.querySelector('#my-form');
+      myForm.addEventListener('submit', onSubmit);
+      function onSubmit(e) {
+        e.preventDefault();
+        const { username, email, phonenum } = e.target.elements;
+        const myobject = {
+          username: username.value,
+          email: email.value,
+          number: phonenum.value
+        };
+
+        axios
+          .post('http://localhost:5000/user/add-user', myobject)
+          .then(response => {
+            console.log(response);
+            showUserDetails(response.data.newUserDetails);
+          })
+          .catch(err => {
+            console.error(err);
+            document.body.innerHTML += "<h4 style='text-align: center;'> Something went wrong </h4>";
+          });
+      }
+
+      function showUserDetails(user) {
+        const parentEle = document.querySelector('.items');
+        const childEle = `<li id="${user.id}">${user.name}-${user.email}-${user.number}
+      <button onclick="deleteUser('${user.id}')">Delete</button>
+      <button onclick="editUser('${user.id}')">Edit</button></li>`;
+        parentEle.innerHTML += childEle;
+        }
+
+      window.addEventListener("DOMContentLoaded",()=>{
+        axios.get("http://localhost:5000/user/get-user")
+              .then((response)=>{
+                for(var i=0;i<response.data.allUsers.length;i++){
+                      showUserDetails(response.data.allUsers[i])
+                    }
+              })
+              .catch((err)=>{
+                console.log(err);
+              })
+})
+
+      function deleteUser(userid){
+          axios.delete(`http://localhost:5000/user/delete-user/${userid}`)
+          .then(response=>{
+            removeUserFromScreen(userid)
+          })
+          .catch(err=>console.log(err))
+      }
+
+      function removeUserFromScreen(userid){
+          const parentNode=document.querySelector('.items')
+          const childNodeToBeDeleted=document.getElementById(userid)
+          if(childNodeToBeDeleted){
+            parentNode.removeChild(childNodeToBeDeleted)
+          }
+      }
+    </script>
+  </body>
+  </html>
